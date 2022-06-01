@@ -1,0 +1,249 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: repeating-linear-gradient(45deg, #aa0000, #0000aa, #aa0000 5%);
+            font-size: 3vw;
+        }
+        
+        tr {
+            font-size: 3vw;
+        }
+        
+        input,
+        select {
+            font-size: 3vw;
+            box-shadow: none;
+            background: #ddd;
+            border-radius: 0.2rem;
+            width: 25vw;
+        }
+        
+        #title {
+            background: #fff8;
+            margin: 0 auto;
+            border-radius: 1rem;
+            width: 35vw;
+            text-align: center;
+            font-size: 4vw;
+            height: 4.5vw;
+        }
+        
+        #content {
+            background: #fff8;
+            width: 72vw;
+            min-height: 30vh;
+            padding: 4vw;
+            border-radius: 1rem;
+            margin: 5vw 10vw auto;
+            text-align: center;
+        }
+        
+        button {
+            padding: 1rem;
+            border: 2px solid #000;
+            border-radius: 1rem;
+            box-shadow: none;
+            background: #66dd66;
+            font-size: 3vw;
+            margin-top: 2vh;
+        }
+
+        .hidden{
+            display:none;
+        }
+        
+        button:active {
+            background: #60d060;
+        }
+        div.container{
+            margin-top:100px;
+            display: flex;
+            justify-content: space-around;
+            flex-direction:row;
+            align-items: top;
+            margin-left:auto;
+            margin-right:auto;
+            width:100%;
+            margin:0%;
+            margin-top:100px;
+            padding:0%;
+
+        }
+        div.codes{
+            display:flex;
+            flex-direction: column;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        const $ = jQuery
+        var incident_type, property_use, borough, date, recommendations, units_onscene, incident_duration, actions, time;
+
+        function id(e) {
+            return document.getElementById(e)
+        }
+
+        function send() {
+            // AJAX
+            $("#predictText").removeClass("hidden");
+            $("#recommendations").addClass("hidden");
+            var data = {
+                "incident-type": incident_type.value,
+                "property-use": property_use.value,
+                "borough": borough.value,
+                "date": date.value,
+                "time": time.value
+            };
+            if (incident_type.value == '') {
+                alert("Missing incident type code.")
+                return;
+            }
+            if (property_use.value == '') {
+                alert("Missing property use code.")
+                return;
+            }
+            if (date.value == '') {
+                alert("Missing date.")
+                return;
+            }
+            if (time.value == '') {
+                alert("Missing time.")
+            }
+            console.log(data);
+            $.post("/", data, receive)
+        }
+
+        function receive(e) {
+            $("#predictText").addClass("hidden");
+            $("#recommendations").removeClass("hidden");
+            e = JSON.parse(e)
+            console.log(e)
+            recommendations.style.display = ""
+            units_onscene.innerText = e["units-onscene"]
+            incident_duration.innerText = e["incident-duration"]
+            action1.innerText = e["action1"]
+            action2.innerText = e["action2"]
+            action3.innerText = e["action3"]
+        }
+
+        function start() {
+            time = id('time');
+            incident_type = id("incident-type")
+            property_use = id("property-use")
+            borough = id("borough")
+            date = id("date")
+            recommendations = id("recommendations")
+            units_onscene = id("units-onscene")
+            incident_duration = id("incident-duration")
+            action1 = id("action1")
+            action2 = id("action2")
+            action3 = id("action3")
+        }
+        $(document).ready(start);
+    </script>
+    <title>NYPD Advisor</title>
+</head>
+
+<body>
+    <h1 id="title">FDNY Advisor</h1>
+    <div id="content">
+        <table style="margin:0 auto">
+            <tr>
+                <td>Incident Type Code:</td>
+                <td><input id="incident-type" type="number" max="999" min="0"></td>
+            </tr>
+            <tr>
+                <td>Property Use Code:</td>
+                <td><input id="property-use" type="number" max="999" min="0">
+            </tr>
+            <tr>
+                <td>Borough:</td>
+                <td>
+                    <select id="borough">
+                        <option value="1">Manhattan</option>
+                        <option value="2">Bronx</option>
+                        <option value="3">Staten Island</option>
+                        <option value="4">Brooklyn</option>
+                        <option value="5">Queens</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Date:</td>
+                <td><input id="date" type="date"></td>
+            </tr>
+            <tr>
+                <td>Time:</td>
+                <td>
+                    <select id="time">
+                        <option value="0">12am - 6am</option>
+                        <option value="1">6am - 12pm</option>
+                        <option value="2">12pm - 6pm</option>
+                        <option value="3">6pm - 12am</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <button onclick="send()">Advise</button>
+
+        <p class = "hidden" id = "predictText">Predicting, please wait...</p>
+
+        <div id="recommendations" style="display:none">
+            <h1>Recommendations:</h1>
+            <table style="margin: 0 auto">
+                <tr>
+                    <td>Units on scene:</td>
+                    <td id="units-onscene"></td>
+                </tr>
+                <tr>
+                    <td>Incident duration:</td>
+                    <td id="incident-duration"></td>
+                </tr>
+                <tr>
+                    <td>Actions to take:</td>
+                </tr>
+                <tr>
+                    <td>&emsp;Action 1:</td>
+                    <td id="action1">   </td>
+                </tr>
+                <tr>
+                    <td>&emsp;Action 2:</td>
+                    <td id="action2">   </td>
+                </tr>
+                <tr>
+                    <td>&emsp;Action 3:</td>
+                    <td id="action3">   </td>
+                </tr>
+            </table>
+        </div>
+
+        <br /> <br /> <hr /><br />
+        
+        <h1 id="title">Number codes</h1>
+        <div class = "container">
+            <div class = "codes">
+                <!-- Nezkerf is a personal website of Thomas Nappi, our team member, who is hosting the images we need on his personal site -->
+                <img src="https://nezkerf.com/4701_resources/names_1.png" alt="Incident code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/names_2.png" alt="Incident code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/names_3.png" alt="Incident code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/names_4.png" alt="Incident code names" width = "390px">
+            </div>
+            <div class = "codes">
+                <img src="https://nezkerf.com/4701_resources/action_1.png" alt="Action code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/action_2.png" alt="Action code names" width = "390px">
+            </div>
+            <div class = "codes">
+                <img src="https://nezkerf.com/4701_resources/property_1.png" alt="Property code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/property_2.png" alt="Property code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/property_3.png" alt="Property code names" width = "390px">
+                <img src="https://nezkerf.com/4701_resources/property_4.png" alt="Property code names" width = "390px">
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
